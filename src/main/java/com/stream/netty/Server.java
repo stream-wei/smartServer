@@ -1,5 +1,6 @@
 package com.stream.netty;
 
+import com.stream.netty.handle.DecodeHandler;
 import com.stream.netty.handle.HeartBeatServerHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -37,9 +38,8 @@ public class Server {
                                           .channel(NioServerSocketChannel.class)
                                           .localAddress(PORT).childHandler(new ChannelInitializer<SocketChannel>() {
                         protected void initChannel(SocketChannel ch) throws Exception {
+                            ch.pipeline().addLast("decoder", new DecodeHandler(4,0,4));
                             ch.pipeline().addLast(new IdleStateHandler(5, 0, 0, TimeUnit.SECONDS));
-                            ch.pipeline().addLast("decoder", new StringDecoder());
-                            ch.pipeline().addLast("encoder", new StringEncoder());
                             ch.pipeline().addLast(new HeartBeatServerHandler());
                         }
                     }).option(ChannelOption.SO_BACKLOG, 128).childOption(ChannelOption.SO_KEEPALIVE, true);
@@ -50,5 +50,9 @@ public class Server {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
         }
+    }
+    
+    public static void main(String[] args) {
+        new Server().start();
     }
 }
