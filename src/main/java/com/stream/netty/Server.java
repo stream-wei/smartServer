@@ -1,7 +1,7 @@
 package com.stream.netty;
 
 import com.stream.netty.codec.LengthFieldBasedFrameDecoder;
-import com.stream.netty.handle.HeartBeatServerHandler;
+import com.stream.netty.handle.BeatServerHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -14,7 +14,7 @@ import io.netty.handler.timeout.IdleStateHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.TimeUnit;
+import java.net.InetSocketAddress;
 
 /**
  * Created by xi.wei on 2017/7/24.
@@ -29,15 +29,22 @@ public class Server {
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
-            ServerBootstrap sbs = new ServerBootstrap().group(bossGroup, workerGroup)
-                                          .channel(NioServerSocketChannel.class)
-                                          .localAddress(PORT).childHandler(new ChannelInitializer<SocketChannel>() {
+            ServerBootstrap sbs = new ServerBootstrap().group(bossGroup, workerGroup).channel(NioServerSocketChannel.class).localAddress(new InetSocketAddress(PORT))
+                    .option(ChannelOption.TCP_NODELAY, true)
+//                    .option(ChannelOption.CONNECT_TIMEOUT_MILLIS,3000)
+                    .childHandler(new ChannelInitializer<SocketChannel>() {
+                        
                         protected void initChannel(SocketChannel ch) throws Exception {
-                            ch.pipeline().addLast("decoder", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4));
-                            ch.pipeline().addLast(new IdleStateHandler(5, 0, 0, TimeUnit.SECONDS));
-                            ch.pipeline().addLast(new HeartBeatServerHandler());
+//                            ch.pipeline().addLast(new LengthFieldPrepender(4));
+                            ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 1, 3, 0, 3));
+                            ch.pipeline().addLast(new IdleStateHandler(5, 0, 0));
+                            ch.pipeline().addLast(new BeatServerHandler());
                         }
-                    }).option(ChannelOption.SO_BACKLOG, 128).childOption(ChannelOption.SO_KEEPALIVE, true);
+                        
+                        ;
+                        
+                    }).option(ChannelOption.SO_BACKLOG, 128)
+                    .childOption(ChannelOption.SO_KEEPALIVE, true);
             // 绑定端口，开始接收进来的连接
             ChannelFuture future = sbs.bind(PORT).sync();
             future.channel().closeFuture().sync();
