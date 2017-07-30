@@ -1,6 +1,9 @@
 package com.stream.netty.handle;
 
+import com.stream.netty.db.DBUtils;
+import com.stream.netty.db.entity.MacRecord;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.IdleState;
@@ -17,45 +20,46 @@ public class BeatServerHandler extends ChannelInboundHandlerAdapter {
     
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        logger.info("新接入客户端");
-        System.out.println(ctx.channel().id());
+        logger.info("新接入客户端,sessionId={}",ctx.channel().id().asLongText());
     }
     
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        logger.info("客户端关闭");
-        System.out.println(ctx.channel().id());
+        logger.info("客户端关闭,sessionId={}",ctx.channel().id().asLongText());
     }
     
     int i = 0;
     
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-        logger.info("server userEventTriggered");
         if (evt instanceof IdleStateEvent){
-            logger.error("服务端监听到读操作超时");
+            logger.error("服务端监听到读操作超时,sessionId={}",ctx.channel().id().asLongText());
             IdleStateEvent idleStateEvent = (IdleStateEvent) evt;
             if (idleStateEvent.state() == IdleState.READER_IDLE){
-                logger.error("没有收到客户端信息");
+                logger.error("没有收到客户端信息,sessionId={}",ctx.channel().id().asLongText());
                 i++;
                 if (i == 2){
-                    System.out.println(ctx.channel().id());
-                    ctx.channel().close();
+                    logger.error("发送报警信息,sessionId={}",ctx.channel().id().asLongText());
+//                    ctx.channel().close();
                 }
             }
         } else {
-            logger.info("服务端监听到超时操作");
+            logger.info("服务端监听到超时操作,sessionId={}",ctx.channel().id().asLongText());
             super.userEventTriggered(ctx,evt);
         }
     }
     
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        logger.info("服务端收到报文message={}",msg);
         ByteBuf byteBuf = (ByteBuf) msg;
-        System.out.println(byteBuf.readByte());
-        System.out.println(byteBuf.readByte());
-        System.out.println(byteBuf.readByte());
+        byte [] macIdBytes = ByteBufUtil.getBytes(byteBuf,0,3);
+        byte [] imeiBytes = ByteBufUtil.getBytes(byteBuf,3,3);
+        MacRecord macRecord = new MacRecord();
+        macRecord.setMacId(new String(macIdBytes));
+        macRecord.setImei(new String(imeiBytes));
+        macRecord.setSessionId(ctx.channel().id().asLongText());
+        logger.info("");
+        DBUtils.insert(macRecord);
     }
     
     @Override

@@ -14,12 +14,12 @@ public class Client {
     private static final Logger logger = LoggerFactory.getLogger(Client.class);
     
     public static void main(String[] args) throws Exception {
-        Socket socket = new Socket("127.0.0.1", 8080);
+        Socket socket = new Socket("127.0.0.1", 9898);
         OutputStream outputStream = socket.getOutputStream();
     
-        String message = "HELLO, WORLD";
+        String message = "123456";
         byte [] m = message.getBytes("UTF-8");
-        byte [] length = new byte[]{0,0x000C};
+        byte [] length = new byte[]{(byte)message.length()};
         while (true){
             outputStream.write(0xAA);
             outputStream.write(length);

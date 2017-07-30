@@ -36,7 +36,7 @@ public class Server {
                         
                         protected void initChannel(SocketChannel ch) throws Exception {
 //                            ch.pipeline().addLast(new LengthFieldPrepender(4));
-                            ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 1, 3, 0, 3));
+                            ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 1, 1, 0, 2));
                             ch.pipeline().addLast(new IdleStateHandler(5, 0, 0));
                             ch.pipeline().addLast(new BeatServerHandler());
                         }
