@@ -58,7 +58,6 @@ public class BeatServerHandler extends ChannelInboundHandlerAdapter {
         macRecord.setMacId(new String(macIdBytes));
         macRecord.setImei(new String(imeiBytes));
         macRecord.setSessionId(ctx.channel().id().asLongText());
-        logger.info("");
         DBUtils.insert(macRecord);
     }
     

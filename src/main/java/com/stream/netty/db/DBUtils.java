@@ -13,16 +13,17 @@ import java.sql.SQLException;
 public class DBUtils {
     
     private static final String query_by_id = "select * from mac_record where id = ?";
+    private static final String query_by_session_id = "select count(1) from mac_record where session_id = ?";
     private static final String insert = "insert into mac_record(mac_id, imei, session_id, update_date) values (?,?,?,now())";
-
-    public static MacRecord queryById(int id){
+    
+    public static MacRecord queryById(int id) {
         MacRecord macRecord = new MacRecord();
         Connection connection = JdbcUtils.getConnection();
         try {
             PreparedStatement statement = connection.prepareStatement(query_by_id);
-            statement.setInt(1,id);
+            statement.setInt(1, id);
             ResultSet resultSet = statement.executeQuery();
-            while (resultSet.next()){
+            while (resultSet.next()) {
                 String macId = resultSet.getString(2);
                 String imei = resultSet.getString(3);
                 String sessionId = resultSet.getString(4);
@@ -34,18 +35,37 @@ public class DBUtils {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    
+        
         return macRecord;
     }
     
-    public static void insert(MacRecord macRecord){
+    public static int queryBySessionId(String sessionId) {
         Connection connection = JdbcUtils.getConnection();
         try {
-            PreparedStatement statement = connection.prepareStatement(insert);
-            statement.setString(1,macRecord.getMacId());
-            statement.setString(2,macRecord.getImei());
-            statement.setString(3,macRecord.getSessionId());
-            int count = statement.executeUpdate();
+            PreparedStatement statement = connection.prepareStatement(query_by_session_id);
+            statement.setString(1, sessionId);
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                return resultSet.getInt(1);
+            }
+        } catch (SQLException e) {
+            return 0;
+        }
+        
+        return 0;
+    }
+    
+    public static void insert(MacRecord macRecord) {
+        Connection connection = JdbcUtils.getConnection();
+        try {
+            int count = queryBySessionId(macRecord.getSessionId());
+            if (count == 0) {
+                PreparedStatement statement = connection.prepareStatement(insert);
+                statement.setString(1, macRecord.getMacId());
+                statement.setString(2, macRecord.getImei());
+                statement.setString(3, macRecord.getSessionId());
+                statement.executeUpdate();
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
