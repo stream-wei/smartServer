@@ -23,12 +23,13 @@ public class Client {
     
     public static void asyn() {
         CountDownLatch begin = new CountDownLatch(1);
-        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        ExecutorService executorService = Executors.newFixedThreadPool(1000);
         for (int i = 0; i < 1000; i++) {
-            int NO = i + 1;
+            final int finalI = i;
             Runnable runnable = new Runnable() {
                 public void run() {
-                    connect();
+                    connect(finalI);
+//                    test(finalI);
                 }
             };
             executorService.submit(runnable);
@@ -37,7 +38,8 @@ public class Client {
         executorService.shutdown();
     }
     
-    public static void connect() {
+    public static void connect(int i) {
+        System.out.println(i);
         try {
             Socket socket = new Socket("127.0.0.1", 9898);
             OutputStream outputStream = socket.getOutputStream();
@@ -50,11 +52,14 @@ public class Client {
                 outputStream.write(length);
                 outputStream.write(m);
                 outputStream.flush();
-                Thread.sleep(6000);
+                Thread.sleep(100000);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        
+    }
+    
+    public static void test(int i){
+        System.out.println(i);
     }
 }

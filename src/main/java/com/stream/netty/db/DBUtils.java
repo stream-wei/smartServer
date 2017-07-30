@@ -58,14 +58,14 @@ public class DBUtils {
     public static void insert(MacRecord macRecord) {
         Connection connection = JdbcUtils.getConnection();
         try {
-            int count = queryBySessionId(macRecord.getSessionId());
-            if (count == 0) {
+//            int count = queryBySessionId(macRecord.getSessionId());
+//            if (count == 0) {
                 PreparedStatement statement = connection.prepareStatement(insert);
                 statement.setString(1, macRecord.getMacId());
                 statement.setString(2, macRecord.getImei());
                 statement.setString(3, macRecord.getSessionId());
                 statement.executeUpdate();
-            }
+//            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
