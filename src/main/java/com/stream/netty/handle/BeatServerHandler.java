@@ -40,7 +40,7 @@ public class BeatServerHandler extends ChannelInboundHandlerAdapter {
                 i++;
                 if (i == 2){
                     logger.error("发送报警信息,sessionId={}",ctx.channel().id().asLongText());
-//                    ctx.channel().close();
+                    ctx.channel().close();
                 }
             }
         } else {
@@ -58,7 +58,8 @@ public class BeatServerHandler extends ChannelInboundHandlerAdapter {
         macRecord.setMacId(new String(macIdBytes));
         macRecord.setImei(new String(imeiBytes));
         macRecord.setSessionId(ctx.channel().id().asLongText());
-        DBUtils.insert(macRecord);
+        System.out.println(macRecord);
+//        DBUtils.insert(macRecord);
     }
     
     @Override
